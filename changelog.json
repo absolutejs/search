@@ -1,0 +1,16 @@
+{
+	"contract": 1,
+	"name": "@absolutejs/search",
+	"releases": [
+		{
+			"changes": [
+				{
+					"kind": "added",
+					"summary": "Provider-neutral search evidence, Brave Web and LLM Context adapters, explicit attempt outcomes and scoped caching"
+				}
+			],
+			"date": "2026-09-24",
+			"version": "0.1.0"
+		}
+	]
+}
