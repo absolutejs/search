@@ -6,6 +6,25 @@
 			"changes": [
 				{
 					"kind": "added",
+					"summary": "Declare provider capabilities, reject unsupported filters before network calls, and provide a Brave configuration recipe and guarded search agent tool."
+				},
+				{
+					"kind": "changed",
+					"summary": "SearchRequest accepts explicit optional filters, SearchProvider may declare capabilities, and the search manifest configures a Brave runtime.",
+					"symbols": [
+						"SearchRequest",
+						"SearchProvider",
+						"manifest"
+					]
+				}
+			],
+			"date": "2026-09-24",
+			"version": "0.2.0"
+		},
+		{
+			"changes": [
+				{
+					"kind": "added",
 					"summary": "Provider-neutral search evidence, Brave Web and LLM Context adapters, explicit attempt outcomes and scoped caching"
 				}
 			],

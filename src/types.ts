@@ -1,3 +1,4 @@
+import type { SearchCapabilities, SearchFilters } from "./capabilities";
 export type SearchStatus =
   | "ok"
   | "empty"
@@ -19,6 +20,7 @@ export type SearchSource = {
   metadata?: Record<string, unknown>;
 };
 export type SearchRequest = {
+  filters?: SearchFilters;
   query: string;
   mode?: "web" | "context";
   signal?: AbortSignal;
@@ -62,6 +64,7 @@ export type SearchResult = {
   cache?: { hit: boolean; originalAttemptIds: string[] };
 };
 export type SearchProvider = {
+  capabilities?: SearchCapabilities;
   name: string;
   version: string;
   search: (request: SearchRequest) => Promise<SearchResult>;

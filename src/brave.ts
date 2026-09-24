@@ -1,3 +1,7 @@
+import {
+  assertSearchCapabilities,
+  type SearchCapabilities,
+} from "./capabilities";
 import type {
   SearchAttempt,
   SearchProvider,
@@ -46,11 +50,17 @@ export type BraveOptions = {
   /** Awaited before returning, including rejected and malformed responses. Does not expose credentials. */
   observe?: (attempt: SearchAttempt) => Promise<void> | void;
 };
+export const braveSearchCapabilities: SearchCapabilities = {
+  modes: ["web", "context"],
+  filters: ["freshness", "country", "language"],
+  content: ["excerpts"],
+};
 export const createBraveSearch = (options: BraveOptions): SearchProvider => {
   const now = options.now ?? Date.now;
   const version = options.apiVersion ?? "2026-07-31";
   return {
     name: "brave",
+    capabilities: braveSearchCapabilities,
     version,
     search: async (request: SearchRequest): Promise<SearchResult> => {
       const started = now();
@@ -85,6 +95,10 @@ export const createBraveSearch = (options: BraveOptions): SearchProvider => {
       let response: Response | undefined;
       try {
         request.signal?.throwIfAborted();
+        assertSearchCapabilities(
+          { capabilities: braveSearchCapabilities },
+          request,
+        );
         const queries = boundedQueries(request.query);
         if (queries.length !== 1)
           throw new Error(
