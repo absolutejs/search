@@ -16,6 +16,17 @@ test('web search uses URL parameters and retains snippets', async () => {
   const provider = createBraveSearch({ apiKey: 'x', fetch: fakeFetch(async (url, init) => { expect(new URL(String(url)).searchParams.get('q')).toBe('Acme'); expect(init?.method).toBe('GET'); return Response.json({ web: { results: [{ title: 'Acme', url: 'https://acme.example/', description: 'About Acme', extra_snippets: ['Team page'] }] } }); }) });
   expect((await provider.search({ query: 'Acme', mode: 'web' })).sources[0]?.excerpts).toEqual(['About Acme', 'Team page']);
 });
+test('Api-Version is only sent when a caller pins one', async () => {
+  const sent: (string | null)[] = [];
+  const record = fakeFetch(async (_url, init) => { sent.push(new Headers(init?.headers).get('Api-Version')); return Response.json({ web: { results: [] } }); });
+  await createBraveSearch({ apiKey: 'x', fetch: record }).search({ query: 'Acme', mode: 'web' });
+  await createBraveSearch({ apiKey: 'x', apiVersion: '2023-01-01', fetch: record }).search({ query: 'Acme', mode: 'web' });
+  expect(sent).toEqual([null, '2023-01-01']);
+});
+test('a web search with no results is empty, not malformed', async () => {
+  const provider = createBraveSearch({ apiKey: 'x', fetch: fakeFetch(async () => Response.json({ type: 'search', query: { original: 'Nope' } })) });
+  expect((await provider.search({ query: 'Nope', mode: 'web' })).status).toBe('empty');
+});
 test('empty, malformed, quota, and auth are not interchangeable', async () => {
   for (const [response, status, billing] of [
     [Response.json({ grounding: { generic: [] } }), 'empty', 'fulfilled'],

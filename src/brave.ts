@@ -57,7 +57,9 @@ export const braveSearchCapabilities: SearchCapabilities = {
 };
 export const createBraveSearch = (options: BraveOptions): SearchProvider => {
   const now = options.now ?? Date.now;
-  const version = options.apiVersion ?? "2026-07-31";
+  // Brave rejects unknown Api-Version values with HTTP 404 on the web
+  // endpoint, so the header is only sent when a caller pins a real version.
+  const version = options.apiVersion ?? "default";
   return {
     name: "brave",
     capabilities: braveSearchCapabilities,
@@ -136,7 +138,7 @@ export const createBraveSearch = (options: BraveOptions): SearchProvider => {
         const headers = {
           accept: "application/json",
           "X-Subscription-Token": options.apiKey,
-          "Api-Version": version,
+          ...(options.apiVersion ? { "Api-Version": options.apiVersion } : {}),
           "Content-Type": "application/json",
         };
         const url = new URL(`https://api.search.brave.com${endpoint}`);
@@ -195,16 +197,16 @@ export const createBraveSearch = (options: BraveOptions): SearchProvider => {
           const body: unknown = await response.json();
           if (!record(body)) throw new Error("Invalid Brave response");
           const container = mode === "context" ? body.grounding : body.web;
-          if (
-            !record(container) ||
-            !Array.isArray(
-              container[mode === "context" ? "generic" : "results"],
-            )
-          )
+          const listed = record(container)
+            ? container[mode === "context" ? "generic" : "results"]
+            : undefined;
+          // Brave omits `web` entirely when a query has no web results; that
+          // is a completed empty search, not a malformed response.
+          const noWebResults =
+            mode === "web" && body.type === "search" && body.web === undefined;
+          if (!noWebResults && !Array.isArray(listed))
             throw new Error("Brave response is missing its result array");
-          const rows = container[
-            mode === "context" ? "generic" : "results"
-          ] as unknown[];
+          const rows: unknown[] = Array.isArray(listed) ? listed : [];
           let invalid = 0;
           const byUrl = new Map<string, SearchSource>();
           for (const row of rows) {

@@ -5,6 +5,16 @@
 		{
 			"changes": [
 				{
+					"kind": "fixed",
+					"summary": "Brave web searches no longer fail with HTTP 404: the Api-Version header is sent only when a caller pins apiVersion, and a web search with no results is reported as empty instead of malformed."
+				}
+			],
+			"date": "2026-09-28",
+			"version": "0.2.1"
+		},
+		{
+			"changes": [
+				{
 					"kind": "added",
 					"summary": "Declare provider capabilities, reject unsupported filters before network calls, and provide a Brave configuration recipe and guarded search agent tool."
 				},
