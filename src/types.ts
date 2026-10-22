@@ -42,6 +42,10 @@ export type SearchAttempt = {
   durationMs: number;
   status: SearchStatus;
   httpStatus?: number;
+  /** Provider diagnostic code, retained independently of HTTP status. */
+  errorCode?: string;
+  /** Bounded provider explanation with the configured credential removed. */
+  errorMessage?: string;
   retryAfterMs?: number;
   /** A successful HTTP response is billable even if parsing fails. */
   billing: "fulfilled" | "rejected" | "unknown" | "not_sent";

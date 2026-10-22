@@ -53,3 +53,20 @@ test('cache coalesces completed work, isolates options, expires empty sooner, ne
   await provider.search({ query: 'a', freshness: 'pw' }); expect(calls).toBe(2);
   now = 11; status = 'error'; await provider.search({ query: 'a' }); await provider.search({ query: 'a' }); expect(calls).toBe(4);
 });
+
+test('Brave 422 invalid credentials remain distinct from quota and input errors', async () => {
+  for (const [code, expected] of [['SUBSCRIPTION_TOKEN_INVALID', 'unavailable'], ['VALIDATION', 'error'], ['QUOTA_LIMITED', 'quota_exceeded']] as const) {
+    const observed: SearchAttempt[] = [];
+    const result = await createBraveSearch({ apiKey: 'private-search-key', observe: attempt => { observed.push(attempt); }, fetch: fakeFetch(async () => Response.json({ error: { id: 'request-422', code, detail: 'The provided API key is invalid.' } }, { status: 422 })) }).search({ query: 'Insurance agencies' });
+    expect(result.status).toBe(expected);
+    expect(observed[0]).toMatchObject({ status: expected, errorCode: code, errorMessage: 'The provided API key is invalid.', providerRequestId: 'request-422', httpStatus: 422, billing: 'rejected', costUsd: null });
+    expect(result.limitations.join(' ')).toContain(code);
+  }
+});
+test('provider diagnostics never retain the configured credential and are bounded', async () => {
+  const key = 'private-search-key';
+  const result = await createBraveSearch({ apiKey: key, fetch: fakeFetch(async () => Response.json({ error: { code: key, id: key, detail: `Rejected ${key} Bearer another-secret\n${'x'.repeat(1000)}` } }, { status: 422 })) }).search({ query: 'Insurance agencies' });
+  expect(JSON.stringify(result)).not.toContain(key);
+  expect(JSON.stringify(result)).not.toContain('another-secret');
+  expect(result.attempts[0]?.errorMessage?.length).toBeLessThanOrEqual(500);
+});

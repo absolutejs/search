@@ -1,6 +1,6 @@
 {
   "name": "@absolutejs/search",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "description": "Provider-neutral web search, grounded evidence, and replaceable search adapters",
   "license": "BSL-1.1",

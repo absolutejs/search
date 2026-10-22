@@ -184,14 +184,21 @@ export const createBraveSearch = (options: BraveOptions): SearchProvider => {
                 ? "unavailable"
                 : "error";
           const error: unknown = await response.json().catch(() => null);
-          if (
-            record(error) &&
-            record(error.error) &&
-            error.error.code === "QUOTA_LIMITED"
-          )
-            result.status = "quota_exceeded";
+          if (record(error) && record(error.error)) {
+            const sanitize = (value: unknown) => text(value)
+              ?.split(options.apiKey).join("[redacted]")
+              .replace(/Bearer\s+\S+/giu, "Bearer [redacted]")
+              .replace(/[\r\n]+/gu, " ").slice(0, 500);
+            attempt.errorCode = sanitize(error.error.code);
+            attempt.errorMessage = sanitize(error.error.detail);
+            attempt.providerRequestId ??= sanitize(error.error.id);
+            if (attempt.errorCode === "QUOTA_LIMITED")
+              result.status = "quota_exceeded";
+            if (attempt.errorCode === "SUBSCRIPTION_TOKEN_INVALID")
+              result.status = "unavailable";
+          }
           result.limitations.push(
-            `Brave request failed with HTTP ${response.status}`,
+            `Brave request failed with HTTP ${response.status}${attempt.errorCode ? ` (${attempt.errorCode})` : ""}${attempt.errorMessage ? `: ${attempt.errorMessage}` : ""}`,
           );
         } else {
           const body: unknown = await response.json();
