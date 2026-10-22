@@ -5,6 +5,19 @@
 		{
 			"changes": [
 				{
+					"kind": "changed",
+					"summary": "SearchAttempt includes optional errorCode and errorMessage fields for sanitized provider diagnostics.",
+					"symbols": [
+						"SearchAttempt"
+					]
+				}
+			],
+			"date": "2026-10-22",
+			"version": "0.2.3"
+		},
+		{
+			"changes": [
+				{
 					"kind": "fixed",
 					"summary": "Preserve sanitized Brave error codes, explanations and request IDs; classify invalid subscription tokens as unavailable rather than generic HTTP 422 errors."
 				}
